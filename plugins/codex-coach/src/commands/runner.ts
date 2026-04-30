@@ -1,9 +1,9 @@
-import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import { CoachError, toCoachError } from "../lib/errors";
 import { jsonFailure, jsonSuccess, printJson } from "../lib/json";
 import { nowIso } from "../lib/time";
+import { resolvePluginDataDir } from "../storage";
 import type { CommandContext, CommandResult } from "../types/commands";
 
 export const PLACEHOLDER_WARNING =
@@ -98,16 +98,7 @@ export function readStringOption(value: unknown, fallback: string): string {
 }
 
 export function resolveDataDir(dataDir?: string): string {
-  if (dataDir && dataDir.length > 0) {
-    return path.resolve(dataDir);
-  }
-
-  const xdgDataHome = process.env.XDG_DATA_HOME;
-  if (xdgDataHome && xdgDataHome.length > 0) {
-    return path.join(xdgDataHome, "codex-coach");
-  }
-
-  return path.join(os.homedir(), ".local", "share", "codex-coach");
+  return resolvePluginDataDir(dataDir);
 }
 
 export function invalidInput(message: string, details: Record<string, unknown> = {}): CoachError {

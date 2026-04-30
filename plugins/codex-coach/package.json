@@ -15,10 +15,12 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "commander": "^12.1.0"
+    "commander": "^12.1.0",
+    "sql.js": "^1.14.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.10",
+    "@types/sql.js": "^1.4.11",
     "typescript": "^5.7.2"
   },
   "engines": {
