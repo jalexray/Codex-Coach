@@ -1,39 +1,75 @@
 # Codex Coach
 
-Codex Coach is a local-first Codex plugin that helps a developer notice newer Codex workflows at the moment they are useful. It combines real Codex changelog updates, a local capability usage map, and recent repository work metadata into one coaching readout.
+Codex Coach is a local-first Codex plugin and CLI that helps a developer notice newer Codex workflows when they are relevant. It combines bundled official Codex changelog records, local capability evidence, recent repository metadata, and deterministic recommendations into one coaching readout.
 
 The default readout has three sections:
 
-- What's new: real Codex updates since the local last-seen timestamp.
-- Capability map: Codex workflows that were used recently, tried before, not observed, or cannot be assessed from local signals.
-- Recent work review: recent work items and deterministic recommendations for Codex capabilities to try next time.
+- What's new: official Codex updates from the bundled changelog cache, filtered by the local last-seen timestamp.
+- Capability map: Codex capabilities grouped by observed local evidence, demo fallback evidence, or unknown/not-observed status.
+- Recent work review: recent git-derived work items, optional demo fallback work items, and recommendations from the local recommender state.
 
-The hackathon demo is designed to show a local install, a Codex thread invocation, deterministic demo reset, feedback on a recommendation, and local history deletion.
+The repository currently ships the plugin under `plugins/codex-coach`; there is no root `package.json`.
+
+## Repository Layout
+
+Key files and directories:
+
+| Path | Purpose |
+| --- | --- |
+| `plugins/codex-coach/package.json` | Node package for the CLI, MCP server, tests, and TypeScript build. |
+| `plugins/codex-coach/src/cli.ts` | Commander-based CLI entry point. |
+| `plugins/codex-coach/src/commands/` | CLI command registration and command runners. |
+| `plugins/codex-coach/src/mcp/` | JSON-RPC MCP server and tool definitions. |
+| `plugins/codex-coach/src/updates/` | Bundled Codex changelog loading, validation, import, and last-seen logic. |
+| `plugins/codex-coach/src/capabilities/` | Capability taxonomy and local capability map. |
+| `plugins/codex-coach/src/work-items/` | Git metadata and demo fallback work item generation. |
+| `plugins/codex-coach/src/recommender/` | Local recommendation rules, state file, and feedback handling. |
+| `plugins/codex-coach/src/hooks/` | Hook payload sanitization, observation storage, and derived capability events. |
+| `plugins/codex-coach/data/codex-updates.json` | Bundled offline Codex changelog cache. |
+| `plugins/codex-coach/hooks/hooks.json` | Plugin-bundled hook configuration. |
+| `plugins/codex-coach/skills/coach/SKILL.md` | Skill instructions used by Codex when invoking the plugin. |
+| `plugins/codex-coach/.codex-plugin/plugin.json` | Plugin manifest. |
+| `plugins/codex-coach/.mcp.json` | MCP server configuration for the plugin. |
+| `.agents/plugins/marketplace.json` | Repo-local marketplace entry pointing at `./plugins/codex-coach`. |
 
 ## Local Data
 
-Codex Coach stores plugin state locally in a plugin-owned data directory. Use `status --json` to see the exact path for your environment.
-Normal CLI runs default to `~/.local/share/codex-coach`; when Codex runs the plugin inside its sandbox, Codex Coach defaults to `~/.codex/memories/codex-coach` so the plugin can persist state without extra filesystem approval. Set `CODEX_COACH_DATA_DIR` or pass `--data-dir` to override this.
+Codex Coach stores state in a plugin-owned data directory. Use `status --json` to see the exact path for the current environment.
+
+Data directory resolution:
+
+1. `--data-dir <path>`
+2. `CODEX_COACH_DATA_DIR`
+3. `XDG_DATA_HOME/codex-coach`
+4. `~/.codex/memories/codex-coach` when `CODEX_SANDBOX` is set
+5. `~/.local/share/codex-coach`
+
+Current local files include:
+
+| File | Written by | Notes |
+| --- | --- | --- |
+| `codex-coach.sqlite` | Storage layer | Local profile, Codex updates, capability events, hook observations, work item tables, recommendation tables, and feedback tables. |
+| `recommender-state.json` | Recommender | Current source of truth for generated recommendations and recommendation feedback. If it is missing, the recommender seeds deterministic demo work items. |
+| `hook-observations.jsonl` | Hook recorder | Append-only copy of sanitized hook observations. |
+| `capability-events.jsonl` | Hook recorder | Append-only copy of capability events derived from hook observations. |
 
 By default, Codex Coach uses metadata only:
 
-- Git branch names, commit messages, timestamps, filenames, and diff stats.
-- Hook observations when Codex hooks are enabled.
-- Real Codex changelog records cached locally from bundled data.
-- User-provided summaries or local exports only when you explicitly point Codex Coach at them.
+- Git commit subjects, branch names, timestamps, filenames, and diff stats.
+- Sanitized hook payload fields when hooks are enabled.
+- Bundled official Codex changelog records cached locally.
+- Demo fallback records when `--demo` is passed or when the recommender initializes an empty state.
 
-Codex Coach does not read source file contents, raw prompts, raw logs, or full tool responses by default. Importers for Codex session metadata, plugin metadata, local exports, or logs must be explicitly approved by the user before they read those files; otherwise those sources are skipped.
-
-The MVP demo does not require network access or an external API call. Generated demo fallback records are labeled with `source: demo-fallback`; real Codex changelog updates are never faked.
+Codex Coach does not read source file contents, raw prompts, raw logs, or full tool responses by default. Source labels for user summaries, Codex session metadata, plugin metadata, and local imports exist in the type system, but there are no current import commands for those sources.
 
 ## Prerequisites
 
 - Node.js 20 or newer.
 - npm.
-- A Codex build with plugin support for the app or CLI installation path.
+- A Codex build with plugin support if you want to install and invoke the plugin through Codex.
 - This repository checked out locally.
 
-Install the CLI dependencies from the repo root:
+Install and build from the plugin package:
 
 ```sh
 cd plugins/codex-coach
@@ -42,96 +78,107 @@ npm run build
 cd ../..
 ```
 
-Check that the local command layer responds:
+Check that the command layer responds:
 
 ```sh
 ./plugins/codex-coach/bin/codex-coach status --json --repo .
 ```
 
-If the output includes `placeholder_implementation`, the command contract is present but the corresponding feature workstream has not been merged yet. The final integrated demo should not rely on placeholder output.
+The `bin/codex-coach` and `bin/codex-coach-mcp` wrappers build `dist/` on first use if the compiled entry point is missing.
 
 ## Install From The Repo-Local Marketplace
 
-Codex Coach is installed as a local Codex plugin from the marketplace metadata in this repository. In the fully integrated build, `.agents/plugins/marketplace.json` points to:
+Codex Coach is installed as a local Codex plugin from this repository's marketplace metadata. The marketplace entry in `.agents/plugins/marketplace.json` points to:
 
 ```text
 ./plugins/codex-coach
 ```
 
-The plugin manifest lives at:
+The plugin manifest is:
 
 ```text
 plugins/codex-coach/.codex-plugin/plugin.json
 ```
 
-Install through the Codex app:
+The manifest registers:
 
-1. Open the Codex app.
-2. Open the plugin directory or plugin marketplace.
-3. Choose the local or repo-local marketplace option.
-4. Select this repository's marketplace entry.
-5. Install `Codex Coach`.
-6. Restart or reload Codex if the app asks you to.
-7. Confirm the installed plugin root resolves to `./plugins/codex-coach`.
+- Display name: `Codex Coach`
+- Skills directory: `./skills/`
+- MCP server config: `./.mcp.json`
+- Icon/logo: `./assets/ccoach.png`
 
-If `.agents/plugins/marketplace.json` or `.codex-plugin/plugin.json` is missing, the plugin install-surface stream has not been merged into your checkout. You can still use the CLI commands directly and use the CLI `/plugins` fallback after that stream lands.
+Install through Codex:
+
+1. Open the Codex app or CLI plugin surface.
+2. Choose the local or repo-local marketplace option.
+3. Select the entry that points to `./plugins/codex-coach`.
+4. Install `Codex Coach`.
+5. Restart or reload Codex if prompted.
 
 ## Invoke From Codex
 
-Start a new Codex thread and invoke the plugin with either the installed skill or a direct plugin mention:
+Start a Codex thread and invoke the installed plugin:
 
 ```text
 @Codex Coach show what's new and review my recent work
 ```
 
-Equivalent prompts should also work:
+Equivalent prompts include:
 
 ```text
 Use Codex Coach to show what's new.
 Use Codex Coach to review my recent work.
+Use Codex Coach to reset the demo state.
 ```
 
-The skill should call the local command layer, typically:
+The skill calls the local command layer, typically:
+
+```sh
+codex-coach coach --json --repo .
+```
+
+For direct local testing from the repo root:
 
 ```sh
 ./plugins/codex-coach/bin/codex-coach coach --json --repo .
 ```
 
-Codex Coach also exposes the same command layer as MCP tools through:
+For a deterministic demo readout:
+
+```sh
+./plugins/codex-coach/bin/codex-coach reset_demo_state --json --data-dir /tmp/codex-coach-demo
+./plugins/codex-coach/bin/codex-coach coach --json --repo . --demo --data-dir /tmp/codex-coach-demo
+```
+
+## MCP Tools
+
+Codex Coach exposes the CLI through an MCP server:
 
 ```text
 plugins/codex-coach/.mcp.json
 plugins/codex-coach/bin/codex-coach-mcp
 ```
 
-After reinstalling or reloading the plugin, Codex can call tools such as `coach`, `get_updates`, `get_recent_work`, and `mark_recommendation_feedback` instead of relying only on skill instructions.
+The MCP server supports these tools:
 
-For a deterministic demo, include `--demo` after running `reset_demo_state`:
+- `status`
+- `coach`
+- `get_updates`
+- `mark_updates_seen`
+- `get_capability_map`
+- `get_recent_work`
+- `get_recommendations`
+- `mark_recommendation_feedback`
+- `import_changelog`
+- `reset_demo_state`
+- `record_hook_observation`
+- `delete_local_history`
 
-```sh
-./plugins/codex-coach/bin/codex-coach coach --json --repo . --demo
-```
-
-## CLI `/plugins` Fallback
-
-Use the CLI fallback if the Codex app plugin directory is unavailable or unstable:
-
-1. Start Codex CLI in this repository.
-2. Run `/plugins`.
-3. Choose the local marketplace or install-from-local-repo option.
-4. Select the marketplace entry that points to `./plugins/codex-coach`.
-5. Restart the Codex CLI session if prompted.
-6. Invoke `@Codex Coach` or ask Codex to use Codex Coach.
-
-If the slash command is unavailable, run the CLI command directly:
-
-```sh
-./plugins/codex-coach/bin/codex-coach coach --json --repo . --demo
-```
+Tool arguments map to CLI flags. For example, MCP `dataDir` maps to `--data-dir`, `startupJson` maps to `--startup-json`, and `recommendationId` maps to `--recommendation-id`.
 
 ## Enable Hooks
 
-Hooks are additive. Codex Coach still works from git metadata, changelog data, and demo fallback records when hooks are disabled.
+Hooks are additive. Codex Coach still works from git metadata, bundled changelog data, recommender state, and demo fallback records when hooks are disabled.
 
 When your Codex environment requires an explicit feature flag, add this to the Codex config file used by your app or CLI, commonly `~/.codex/config.toml`:
 
@@ -140,23 +187,23 @@ When your Codex environment requires an explicit feature flag, add this to the C
 codex_hooks = true
 ```
 
-Then restart Codex. The plugin-bundled hook config is expected at:
+Then restart Codex. The plugin-bundled hook config lives at:
 
 ```text
 plugins/codex-coach/hooks/hooks.json
 ```
 
-The hook config also includes a demo-focused `SessionStart` hook that runs:
+That config includes:
 
-```sh
-codex-coach get_updates --demo --startup-json
-```
+- `SessionStart`: runs `codex-coach get_updates --demo --startup-json` and returns a compact startup system message.
+- `PostToolUse`: records best-effort local hook observations for matching tool names.
+- `Stop`: records a best-effort local stop observation.
 
-That startup hook returns a compact "Codex Coach startup updates" system message with real cached Codex changelog titles. The full `@Codex Coach` readout keeps the per-update details and source URLs. `PostToolUse` and `Stop` hooks stay quiet and call `codex-coach record_hook_observation` for best-effort local capability capture.
+The repo also includes `.codex/config.toml` and `.codex/hooks.json` for local development. The repo-local hook file currently wires a `SessionStart` hook to the repo-relative CLI path.
 
 ## Verify Hooks
 
-Do not use SessionStart UI text as the source of truth. Depending on the Codex surface, the startup updates may appear only after the first interaction rather than directly under the startup banner.
+Do not use SessionStart UI text as the only source of truth. Depending on the Codex surface, startup updates may appear only after the first interaction.
 
 Verify stored observations instead:
 
@@ -173,10 +220,11 @@ printf '%s\n' '{"session_id":"s1","turn_id":"t2","hook_event_name":"Stop","cwd":
 ./plugins/codex-coach/bin/codex-coach get_capability_map --json --data-dir "$DATA_DIR"
 ```
 
-In a complete hook build, treat these stored values as the verification result:
+Useful verification signals:
 
-- `data.counts.hook_observations` is greater than `0`, or `data.hooks.last_observed_at` is not `null`.
-- `get_capability_map --json` includes capability evidence with a `hook` source label or best-effort hook observation wording.
+- `data.counts.hook_observations` is greater than `0`.
+- `data.hooks.last_observed_at` is not `null`.
+- `get_capability_map --json` includes capability evidence with a `hook` source label.
 
 Hook-derived records are best-effort local observations, not complete telemetry across every Codex surface.
 
@@ -192,27 +240,38 @@ Global options:
 
 | Option | Behavior |
 | --- | --- |
-| `--json` | Emits the stable JSON envelope used by the skill and future tool wrappers. |
+| `--json` | Emits the stable JSON envelope used by the skill and MCP tools. |
 | `--repo <path>` | Repository to inspect. Defaults to the current working directory. |
-| `--data-dir <path>` | Overrides the local Codex Coach data directory. Useful for tests and demos. |
-| `--demo` | Allows deterministic demo fallback data when real local signals are sparse. |
+| `--data-dir <path>` | Overrides the local Codex Coach data directory. |
+| `--demo` | Allows deterministic demo fallback data where implemented. |
 
 Commands:
 
 | Command | Purpose |
 | --- | --- |
-| `status` | Shows the data directory, profile state, hook hints, last update timestamp, and record counts. |
-| `import_changelog` | Imports bundled real Codex changelog entries into the local cache. `--refresh` may fetch official sources if implemented. |
-| `get_updates` | Returns changelog entries newer than the local last-seen timestamp or new-user highlights. |
-| `mark_updates_seen` | Updates `last_seen_updates_at`; accepts `--seen-at <timestamp>` for tests. |
-| `get_capability_map` | Returns grouped capability statuses and supporting local evidence. |
-| `get_recent_work` | Returns recent work items from local git metadata, hooks, imports, and demo fallback when allowed. |
-| `get_recommendations` | Returns deterministic recommendations for recent work. |
-| `coach` | Returns the aggregate payload used by the Codex Coach skill. |
-| `mark_recommendation_feedback` | Stores useful or not-useful feedback for a recommendation. |
-| `record_hook_observation` | Reads a Codex hook payload from stdin and stores allowed metadata only. |
-| `reset_demo_state` | Resets local demo timestamps and seeds deterministic fallback records. |
-| `delete_local_history` | Deletes plugin-owned local history only. |
+| `status` | Shows the data directory, profile state, hook hints, last update timestamp, and SQLite record counts. |
+| `import_changelog` | Imports bundled Codex changelog entries into SQLite. `--refresh` is accepted but currently emits `refresh_not_enabled` and uses the bundled cache. |
+| `get_updates` | Returns new-user highlights or changelog entries newer than the local last-seen timestamp. Seeds the bundled cache if it is empty. |
+| `mark_updates_seen` | Updates `last_seen_updates_at`; accepts `--seen-at <timestamp>`. |
+| `get_capability_map` | Returns grouped capability statuses from stored capability events. With `--demo`, uses demo capability events only when no events exist. |
+| `get_recent_work` | Returns recent work items from local git metadata. With `--demo`, appends deterministic demo fallback work items. |
+| `get_recommendations` | Returns deterministic recommendations from `recommender-state.json`. If the recommender state has no work items, it seeds demo work items. |
+| `coach` | Returns the aggregate payload used by the skill: updates, capability map, recent work, recommendations, and profile. |
+| `mark_recommendation_feedback` | Stores useful or not-useful feedback for a recommendation in `recommender-state.json`. |
+| `record_hook_observation` | Reads a hook payload from stdin, stores sanitized metadata, and derives capability events when possible. |
+| `reset_demo_state` | Clears SQLite history tables, seeds bundled changelog records, and sets the demo last-seen timestamp. |
+| `delete_local_history` | Deletes Codex Coach SQLite storage files after safety checks. It does not currently remove `recommender-state.json` or hook JSONL files. |
+
+Command-specific options:
+
+| Command | Option | Behavior |
+| --- | --- | --- |
+| `get_updates` | `--startup-json` | Emits the compact SessionStart hook JSON form. |
+| `mark_updates_seen` | `--seen-at <timestamp>` | Stores the provided ISO-compatible timestamp. |
+| `mark_recommendation_feedback` | `--recommendation-id <id>` | Required recommendation ID. |
+| `mark_recommendation_feedback` | `--rating useful\|not-useful` | Required feedback rating. |
+| `mark_recommendation_feedback` | `--note <text>` | Optional feedback note. |
+| `import_changelog` | `--refresh` | Accepted for compatibility; remote refresh is not enabled. |
 
 Feedback example:
 
@@ -228,7 +287,9 @@ Feedback example:
 
 `--repo <path>` selects the repository whose metadata Codex Coach should inspect. It defaults to the current working directory.
 
-The git importer uses metadata such as commit messages, branch names, file paths, timestamps, file counts, and diff stats. It does not read source file contents by default.
+The git importer validates that the path is a readable git work tree, resolves the git root, reads current branch metadata, reads up to 12 recent non-merge commits, and uses commit subjects, timestamps, filenames, and numstat diff stats. It does not read source file contents.
+
+`get_recent_work` filters administrative commits, returns up to 6 git work items, and marks sparse history with a warning when applicable.
 
 Examples:
 
@@ -237,24 +298,41 @@ Examples:
 ./plugins/codex-coach/bin/codex-coach coach --json --repo /path/to/another/repo
 ```
 
-An invalid repo path should return a non-zero exit with the standard JSON error envelope when `--json` is present. The inspected repo is separate from the plugin data directory; deleting local Codex Coach history must not delete the repo.
+An invalid repo path returns a non-zero exit with the standard JSON error envelope when `--json` is present. The inspected repo is separate from the plugin data directory.
 
 ## Changelog Cache Behavior
 
-`import_changelog` imports bundled, normalized Codex changelog records so the demo works offline. The required bundled entries are:
+`import_changelog` imports bundled, normalized Codex changelog records so the plugin works offline. The bundled entries are:
 
 - `2026-04-23`: GPT-5.5 and Codex app updates.
-- `2026-04-16-app`: richer Codex app workflows.
+- `2026-04-16-app`: Codex can now help with more of your work.
 - `2026-04-07`: Codex model availability update.
-- `2026-03-25`: build and install plugins in Codex.
+- `2026-03-25`: Build and install plugins in Codex.
 
-Every update must preserve a real Codex changelog source URL. Optional refresh mode may fetch newer official Codex changelog entries, but it must fall back to the local cache with a warning if refresh fails. Codex Coach must not invent product updates.
+Every update must preserve a real Codex changelog source URL. `--refresh` does not fetch remote changelog data in the current implementation; it returns a warning and uses the bundled cache.
 
 Use `mark_updates_seen` after a readout if you want the next run to show only newer updates.
 
-## Demo Fallback Labeling
+## Demo Behavior
 
-`--demo` and `reset_demo_state` may seed fallback capability events or work items when real local history is sparse. All generated fallback records must use:
+Demo behavior is deterministic and local. It does not require network access or an external API call.
+
+`reset_demo_state` currently clears SQLite history tables, seeds the bundled changelog records, and sets `last_seen_updates_at` to:
+
+```text
+2026-03-24T00:00:00.000Z
+```
+
+`--demo` affects readout commands as follows:
+
+- `get_updates`: uses the fixed demo last-seen timestamp so the bundled updates appear as deltas.
+- `get_capability_map`: uses demo capability events only when no stored capability events exist.
+- `get_recent_work`: appends deterministic demo fallback work items to git-derived work items.
+- `coach`: inherits the demo behavior of its component commands.
+
+The recommender seeds deterministic demo work items when `recommender-state.json` has no work items, regardless of `--demo`.
+
+Generated fallback records use:
 
 ```text
 source: demo-fallback
@@ -267,10 +345,10 @@ The demo-critical fallback work items are:
 
 Expected recommendations:
 
-- The settings layout work item should recommend `computer-use` or `multimodal-input`.
-- The auth and billing refactor should recommend `parallel-agents` or `cloud-task`.
+- The settings layout work item recommends `computer-use` or `multimodal-input`.
+- The auth and billing refactor recommends `parallel-agents` or `cloud-task`.
 
-Fallback labeling applies to demo work items and capability events only. Changelog updates must always be real records with source URLs.
+Fallback labeling applies to demo work items and capability events only. Changelog updates are always bundled official records with source URLs.
 
 ## Demo Reset
 
@@ -284,18 +362,17 @@ DATA_DIR=/tmp/codex-coach-demo
 ./plugins/codex-coach/bin/codex-coach coach --json --repo . --demo --data-dir "$DATA_DIR"
 ```
 
-After reset, the demo should show:
+After reset and a demo readout, expect:
 
-- At least three real Codex changelog updates with URLs.
+- At least three bundled Codex changelog updates with URLs.
 - A capability map with at least one `not_observed` capability.
-- `Debugged settings page layout across desktop and mobile`.
-- A `computer-use` or `multimodal-input` recommendation for that work item.
-- `Large refactor across auth and billing`.
-- A `parallel-agents` or `cloud-task` recommendation for that work item.
+- The two demo fallback work items listed above.
+- A `computer-use` or `multimodal-input` recommendation for the settings layout work item.
+- A `parallel-agents` or `cloud-task` recommendation for the auth and billing refactor work item.
 
 ## Delete Local History
 
-Use `delete_local_history` to remove plugin-owned local data:
+Use `delete_local_history` to remove the SQLite storage files after inspecting the data directory:
 
 ```sh
 ./plugins/codex-coach/bin/codex-coach status --json
@@ -308,7 +385,14 @@ For demos and tests, pass the same `--data-dir` you used for the run:
 ./plugins/codex-coach/bin/codex-coach delete_local_history --json --data-dir /tmp/codex-coach-demo
 ```
 
-The command is expected to delete only Codex Coach data under the resolved plugin data directory or explicit `--data-dir`. It must not delete the inspected repository, plugin source, `node_modules`, or build output.
+Current safety checks refuse to delete:
+
+- The filesystem root.
+- The home directory.
+- A data directory inside the inspected repo.
+- A non-default data directory unless `--data-dir` was explicitly provided.
+
+Current deletion removes `codex-coach.sqlite` and related SQLite sidecar files only. It does not remove `recommender-state.json`, `hook-observations.jsonl`, or `capability-events.jsonl`.
 
 ## Verification Harness
 
@@ -318,13 +402,33 @@ The optional harness runs the key CLI commands against a temporary data director
 plugins/codex-coach/scripts/verify-demo.sh
 ```
 
-Use strict mode after the feature streams are merged:
+Use strict mode for demo assertions:
 
 ```sh
 plugins/codex-coach/scripts/verify-demo.sh --strict
 ```
 
 Smoke mode validates JSON envelopes and records outputs for inspection. Strict mode additionally checks the required demo moments, fallback labels, recommendation capabilities, and hook verification through stored observations.
+
+## Development
+
+Run tests from the plugin package:
+
+```sh
+cd plugins/codex-coach
+npm test
+```
+
+Useful scripts:
+
+| Script | Behavior |
+| --- | --- |
+| `npm run build` | Compiles TypeScript to `dist/`. |
+| `npm run typecheck` | Runs TypeScript without emitting files. |
+| `npm test` | Runs typecheck, build, and Node's test runner against compiled tests. |
+| `npm run prepare` | Builds the package. |
+
+Generated directories such as `plugins/codex-coach/dist/` and `plugins/codex-coach/node_modules/` are ignored by git.
 
 ## Troubleshooting
 
@@ -334,20 +438,20 @@ Missing marketplace entries:
 - Confirm its Codex Coach entry points to `./plugins/codex-coach`.
 - Confirm `plugins/codex-coach/.codex-plugin/plugin.json` exists and uses relative `./` paths.
 - Restart or reload Codex after installation.
-- Use CLI `/plugins` or direct CLI commands if the app plugin directory is unavailable.
+- Use direct CLI commands if the Codex plugin surface is unavailable.
 
 Disabled hooks:
 
 - Add `[features] codex_hooks = true` to the Codex config that your app or CLI actually uses.
 - Restart Codex.
 - Run the stored-observation verification commands above.
-- Remember that hooks are additive; missing hook observations should not block changelog, git, or demo fallback output.
+- Remember that hooks are additive; missing hook observations should not block changelog, git, recommender, or demo fallback output.
 
 Empty git history:
 
 - Pass `--repo <path>` for the repository you want to inspect.
 - Confirm the path is a git repository.
-- Use `--demo` for hackathon rehearsal so sparse-history fallback records appear with `source: demo-fallback`.
+- Use `--demo` for rehearsal so deterministic fallback work items appear with `source: demo-fallback`.
 
 Missing Node dependencies:
 
@@ -357,7 +461,7 @@ Missing Node dependencies:
 
 No changelog updates after a prior run:
 
-- Run `reset_demo_state` for the hackathon demo.
+- Run `reset_demo_state` for demo rehearsal.
 - Or run `mark_updates_seen --seen-at <older-timestamp>` in a test data directory.
 - Confirm `import_changelog` has populated the local cache.
 
@@ -365,4 +469,4 @@ Local data deletion:
 
 - Run `status --json` first and inspect `data.data_dir`.
 - Use `delete_local_history --json` with the same `--data-dir` used for the demo.
-- If you manually remove files, delete only the reported Codex Coach data directory.
+- Remember that the current command deletes SQLite files only.
