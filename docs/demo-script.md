@@ -27,6 +27,15 @@ Optional CLI rehearsal:
 ./plugins/codex-coach/bin/codex-coach coach --json --repo . --demo --data-dir "$DATA_DIR"
 ```
 
+Optional startup-hook rehearsal:
+
+```sh
+./plugins/codex-coach/bin/codex-coach get_updates --demo
+./plugins/codex-coach/bin/codex-coach get_updates --demo --startup-json
+```
+
+The first command shows the human-readable update text with source URLs. The second command is the compact JSON system-message form the bundled `SessionStart` hook runs for the demo startup moment. It uses demo mode so startup shows the cached real Codex changelog titles even if local update state was previously marked seen.
+
 Confirm before going live:
 
 - At least three real Codex changelog updates appear with source URLs.
@@ -75,7 +84,15 @@ Say:
 
 ### 0:35 - 0:50, Invoke In A New Thread
 
-Start a new Codex thread and invoke:
+Start a new Codex thread. If hooks are enabled, show the compact startup readout when it appears:
+
+```text
+Codex Coach startup updates
+```
+
+Depending on the Codex surface, this may appear after the first interaction rather than directly under the startup banner.
+
+Then invoke:
 
 ```text
 @Codex Coach show what's new and review my recent work
@@ -177,6 +194,11 @@ Narration for fallback:
 ## Hook Demo Note
 
 Only include hooks in the live demo if they are already enabled and stable in the environment.
+
+The bundled hook config includes:
+
+- `SessionStart`: runs `codex-coach get_updates --demo --startup-json` for the startup update readout.
+- `PostToolUse` and `Stop`: record quiet local observations through `record_hook_observation`.
 
 If needed, show the config requirement:
 

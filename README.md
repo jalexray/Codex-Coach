@@ -136,11 +136,17 @@ Then restart Codex. The plugin-bundled hook config is expected at:
 plugins/codex-coach/hooks/hooks.json
 ```
 
-The hook capture stream configures supported lifecycle events such as `PostToolUse` and `Stop` to call `codex-coach record_hook_observation`.
+The hook config also includes a demo-focused `SessionStart` hook that runs:
+
+```sh
+codex-coach get_updates --demo --startup-json
+```
+
+That startup hook returns a compact "Codex Coach startup updates" system message with real cached Codex changelog titles. The full `@Codex Coach` readout keeps the per-update details and source URLs. `PostToolUse` and `Stop` hooks stay quiet and call `codex-coach record_hook_observation` for best-effort local capability capture.
 
 ## Verify Hooks
 
-Do not use SessionStart UI text as the source of truth. Depending on the Codex surface, a SessionStart warning or status line may appear only after the first interaction rather than directly under the startup banner.
+Do not use SessionStart UI text as the source of truth. Depending on the Codex surface, the startup updates may appear only after the first interaction rather than directly under the startup banner.
 
 Verify stored observations instead:
 

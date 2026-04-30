@@ -2,11 +2,13 @@
   "hooks": {
     "SessionStart": [
       {
+        "matcher": "^startup$",
         "hooks": [
           {
             "type": "command",
-            "command": "codex-coach get_updates --demo",
-            "timeout": 10
+            "command": "codex-coach get_updates --demo --startup-json",
+            "timeout": 10,
+            "statusMessage": "Codex Coach checking updates"
           }
         ]
       }

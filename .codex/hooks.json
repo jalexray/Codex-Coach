@@ -6,9 +6,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'date -u +%Y-%m-%dT%H:%M:%SZ | tee -a /private/tmp/codex-coach-startup-hook-ran.log >/dev/null; printf \"{\\\"systemMessage\\\":\\\"hello Alex and WELCOME TO CODEX!\\\"}\\\\n\"'",
+            "command": "./plugins/codex-coach/bin/codex-coach get_updates --demo --startup-json",
             "timeout": 5,
-            "statusMessage": "Codex coach loaded!"
+            "statusMessage": "Codex Coach checking updates"
           }
         ]
       }
