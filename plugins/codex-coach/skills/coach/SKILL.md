@@ -1,11 +1,13 @@
 ---
 name: coach
-description: Run Codex Coach to render a local-first coaching readout with Codex updates, capability usage, and recent work recommendations.
+description: Run Codex Coach when the user mentions Codex Coach, codex-coach, plugins/codex-coach, or asks for its what's-new/recent-work readout.
 ---
 
 # Codex Coach
 
 Use this skill when the user asks Codex Coach to show what is new, review recent work, map Codex capabilities they have used, suggest Codex workflows to try next time, reset the demo, delete local Codex Coach history, or record feedback on a recommendation.
+
+Treat path-like mentions such as `plugins/codex-coach`, plugin-slug mentions such as `codex-coach`, and direct mentions such as `@Codex Coach` as Codex Coach plugin invocations when they are paired with requests like "what's new", "review my work", "capabilities", "recommendations", "reset demo", or "feedback". In those cases, run the Codex Coach CLI first and do not inspect git history, repository files, plugin metadata, or local diffs before the CLI returns.
 
 ## Command Contract
 

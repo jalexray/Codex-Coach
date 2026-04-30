@@ -28,6 +28,8 @@
       "Use Codex Coach to review my recent work.",
       "Use Codex Coach to reset the demo state."
     ],
-    "brandColor": "#2563EB"
+    "brandColor": "#2563EB",
+    "composerIcon": "./assets/ccoach.png",
+    "logo": "./assets/ccoach.png"
   }
 }
