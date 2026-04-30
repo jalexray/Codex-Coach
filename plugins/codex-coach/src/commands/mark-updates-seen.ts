@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { placeholderProfile } from "./placeholders";
-import { addGlobalOptions, PLACEHOLDER_WARNING, runCommand } from "./runner";
+import { addGlobalOptions, runCommand } from "./runner";
+import { markUpdatesSeen } from "../updates";
 import type { LocalProfile } from "../types/entities";
 
 interface MarkUpdatesSeenOptions {
@@ -13,13 +13,8 @@ export function registerMarkUpdatesSeenCommands(program: Command): void {
   ).option("--seen-at <timestamp>", "timestamp to store; defaults to command execution time");
 
   command.action(async () => {
-    await runCommand<LocalProfile>("mark_updates_seen", command, (ctx) => ({
-      data: {
-        ...placeholderProfile(ctx),
-        last_seen_updates_at: command.opts<MarkUpdatesSeenOptions>().seenAt ?? ctx.generated_at
-      },
-      warnings: [PLACEHOLDER_WARNING],
-      sources: []
-    }));
+    await runCommand<LocalProfile>("mark_updates_seen", command, (ctx) =>
+      markUpdatesSeen(ctx, command.opts<MarkUpdatesSeenOptions>().seenAt)
+    );
   });
 }
