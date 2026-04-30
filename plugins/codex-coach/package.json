@@ -1,0 +1,27 @@
+{
+  "name": "codex-coach",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first Codex coaching plugin CLI.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "codex-coach": "./bin/codex-coach"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run typecheck",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
