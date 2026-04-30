@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "source_url": "https://developers.openai.com/codex/changelog",
+  "updates": [
+    {
+      "id": "2026-04-23",
+      "published_at": "2026-04-23",
+      "title": "GPT-5.5 and Codex app updates",
+      "summary": "GPT-5.5 became available in Codex for complex coding, computer use, knowledge work, and research workflows. The Codex app also added browser use for local and file-backed pages plus automatic approval reviews.",
+      "source_url": "https://developers.openai.com/codex/changelog#codex-2026-04-23",
+      "capability_tags": ["computer-use", "hooks", "codex-app-session", "github-code-review"],
+      "update_topic_tags": ["model-workflow-discovery", "automatic-approval-reviews"],
+      "imported_at": "2026-04-30T00:00:00.000Z",
+      "when_to_use": "Use this when you want a stronger model for implementation, refactors, debugging, testing, validation, or knowledge work, or when Codex needs to exercise a rendered UI and route approval prompts through a reviewer."
+    },
+    {
+      "id": "2026-04-16-app",
+      "published_at": "2026-04-16",
+      "title": "Codex can now help with more of your work",
+      "summary": "The Codex app expanded into a broader AI workspace with less setup, browser-based verification, computer use for macOS app workflows, richer outputs, and better continuity across longer-running tasks.",
+      "source_url": "https://developers.openai.com/codex/changelog#codex-2026-04-16-app",
+      "capability_tags": ["computer-use", "multimodal-input", "codex-app-session"],
+      "update_topic_tags": ["richer-app-workflows"],
+      "imported_at": "2026-04-30T00:00:00.000Z",
+      "when_to_use": "Use this when a task needs Codex to inspect a running app, comment on a rendered page, operate desktop UI flows, or produce richer artifacts from files and screenshots."
+    },
+    {
+      "id": "2026-04-07",
+      "published_at": "2026-04-07",
+      "title": "Codex model availability update",
+      "summary": "Codex model availability was updated across Codex surfaces, making it easier to discover and select the appropriate model and workflow from the CLI, app, and related product surfaces.",
+      "source_url": "https://developers.openai.com/codex/changelog#codex-2026-04-07",
+      "capability_tags": ["cli-local-chat", "codex-app-session"],
+      "update_topic_tags": ["model-workflow-discovery", "product-discovery-updates"],
+      "imported_at": "2026-04-30T00:00:00.000Z",
+      "when_to_use": "Use this when you are choosing which Codex surface or model to start with and want the local CLI and Codex app model picker behavior to match the current rollout."
+    },
+    {
+      "id": "2026-03-25",
+      "published_at": "2026-03-25",
+      "title": "Build and install plugins in Codex",
+      "summary": "Codex added plugins: installable bundles that package skills, app integrations, and MCP server configuration for reusable workflows across the Codex app, CLI, and IDE extensions.",
+      "source_url": "https://developers.openai.com/codex/changelog#codex-2026-03-25",
+      "capability_tags": ["skills", "plugins", "mcp", "cli-local-chat", "codex-app-session", "ide-extension"],
+      "update_topic_tags": ["plugin-installation"],
+      "imported_at": "2026-04-30T00:00:00.000Z",
+      "when_to_use": "Use this when you want to package repeatable Codex workflows as skills, app integrations, MCP configuration, or repo-local plugins that teammates can install."
+    }
+  ]
+}
