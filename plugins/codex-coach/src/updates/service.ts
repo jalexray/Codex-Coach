@@ -68,7 +68,7 @@ export async function getUpdates(ctx: CommandContext): Promise<CommandResult<Get
   try {
     const allUpdates = await ensureStoredUpdates(storage);
     const profile = storage.getOrCreateLocalProfile(ctx.generated_at);
-    const lastSeenUpdatesAt = profile.last_seen_updates_at;
+    const lastSeenUpdatesAt = ctx.demo ? DEMO_LAST_SEEN_UPDATES_AT : profile.last_seen_updates_at;
 
     const data: GetUpdatesData =
       lastSeenUpdatesAt === null

@@ -59,18 +59,22 @@ test("getUpdates returns new-user highlights, demo deltas, and marks seen", asyn
     const afterSeen = await getUpdates(context("get_updates", dataDir, "2026-04-30T12:05:00.000Z"));
     assert.equal(afterSeen.data.mode, "delta");
     assert.equal(afterSeen.data.updates.length, 0);
+
+    const demoRead = await getUpdates(context("get_updates", dataDir, "2026-04-30T12:06:00.000Z", true));
+    assert.equal(demoRead.data.mode, "delta");
+    assert.ok(demoRead.data.updates.length >= 3);
   } finally {
     await fs.rm(dataDir, { recursive: true, force: true });
   }
 });
 
-function context(command: string, dataDir: string, generatedAt: string): CommandContext {
+function context(command: string, dataDir: string, generatedAt: string, demo = false): CommandContext {
   return {
     command,
     generated_at: generatedAt,
     repo: process.cwd(),
     json: true,
     data_dir: dataDir,
-    demo: false
+    demo
   };
 }

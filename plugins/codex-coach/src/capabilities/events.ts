@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { isCapabilityId } from "./taxonomy";
+import { openStorage } from "../storage";
 import { SOURCE_LABELS, type SourceLabel } from "../types/sources";
 import type { CommandContext } from "../types/commands";
 import type { CapabilityEvent } from "../types/entities";
@@ -11,7 +12,9 @@ const READABLE_CAPABILITY_EVENT_FILES = [
   CAPABILITY_EVENTS_FILE,
   "capability_events.json",
   "capability-events.ndjson",
-  "capability_events.ndjson"
+  "capability_events.ndjson",
+  "capability-events.jsonl",
+  "capability_events.jsonl"
 ] as const;
 
 const SOURCE_LABEL_SET = new Set<string>(Object.values(SOURCE_LABELS));
@@ -30,6 +33,24 @@ export async function loadCapabilityEvents(
   const sourcePaths: string[] = [];
   const warnings: string[] = [];
   let skippedRecords = 0;
+
+  try {
+    const storage = await openStorage({
+      dataDir: ctx.data_dir,
+      generatedAt: "1970-01-01T00:00:00.000Z"
+    });
+
+    try {
+      for (const event of storage.listCapabilityEvents()) {
+        eventsById.set(event.id, event);
+      }
+      sourcePaths.push(storage.getDatabasePath());
+    } finally {
+      await storage.close();
+    }
+  } catch {
+    warnings.push("capability_events_storage_unreadable");
+  }
 
   for (const fileName of READABLE_CAPABILITY_EVENT_FILES) {
     const filePath = path.join(ctx.data_dir, fileName);
@@ -50,7 +71,7 @@ export async function loadCapabilityEvents(
 
     let records: unknown[];
     try {
-      records = fileName.endsWith(".ndjson") ? parseNdjson(raw) : parseJsonRecords(raw);
+      records = fileName.endsWith(".ndjson") || fileName.endsWith(".jsonl") ? parseNdjson(raw) : parseJsonRecords(raw);
     } catch {
       warnings.push(`capability_events_parse_failed:${fileName}`);
       continue;

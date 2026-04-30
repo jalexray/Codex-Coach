@@ -8,7 +8,7 @@
             "type": "command",
             "command": "sh -c 'date -u +%Y-%m-%dT%H:%M:%SZ | tee -a /private/tmp/codex-coach-startup-hook-ran.log >/dev/null; printf \"{\\\"systemMessage\\\":\\\"hello Alex and WELCOME TO CODEX!\\\"}\\\\n\"'",
             "timeout": 5,
-            "statusMessage": "hello Alex and WELCOME TO CODEX!"
+            "statusMessage": "Codex coach loaded!"
           }
         ]
       }

@@ -2,9 +2,9 @@ import { Command } from "commander";
 import { getCapabilityMapResult } from "../capabilities";
 import { getRecommendations, recommendationSources } from "../recommender/service";
 import { openStorage } from "../storage";
+import { getUpdates } from "../updates";
 import { getRecentWorkResult } from "../work-items";
-import { placeholderUpdatesData } from "./placeholders";
-import { addGlobalOptions, PLACEHOLDER_WARNING, runCommand } from "./runner";
+import { addGlobalOptions, runCommand } from "./runner";
 import type {
   CapabilityMapData,
   CoachData,
@@ -33,7 +33,7 @@ export function registerCoachCommands(program: Command): void {
 }
 
 export async function getCoachResult(ctx: CommandContext): Promise<CommandResult<CoachData>> {
-  const updates = getUpdatesResult(ctx);
+  const updates = await getUpdates(ctx);
   const capabilityMap = await getCapabilityMapResult(ctx);
   const recentWork = await getRecentWorkResult(ctx);
   const recommendationsData = await getRecommendations(ctx);
@@ -75,14 +75,6 @@ export function composeCoachResult(parts: CoachResultParts): CommandResult<Coach
       ...(parts.recommendations.sources ?? []),
       ...(parts.profile.sources ?? [])
     ])
-  };
-}
-
-function getUpdatesResult(ctx: CommandContext): CommandResult<GetUpdatesData> {
-  return {
-    data: placeholderUpdatesData(ctx),
-    warnings: [PLACEHOLDER_WARNING],
-    sources: []
   };
 }
 

@@ -15,7 +15,7 @@ export async function getRecentWorkResult(ctx: CommandContext): Promise<CommandR
   const gitImport = await importGitRecentWork(ctx.repo);
   const gitWorkItems = createGitWorkItems(gitImport);
   const demoWorkItems =
-    ctx.demo && gitImport.sparse_history
+    ctx.demo
       ? createDemoFallbackWorkItems({
           repoPath: gitImport.repository.root_path,
           generatedAt: ctx.generated_at
@@ -47,7 +47,7 @@ export async function getRecentWorkResult(ctx: CommandContext): Promise<CommandR
         ? [
             {
               label: SOURCE_LABELS.DEMO_FALLBACK,
-              description: "Deterministic demo fallback work items used because git history is sparse.",
+              description: "Deterministic demo fallback work items used for the demo readout.",
               path: gitImport.repository.root_path,
               record_count: demoWorkItems.length
             }

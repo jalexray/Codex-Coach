@@ -11,7 +11,6 @@ import {
   placeholderRecommendationsData,
   placeholderUpdatesData
 } from "./placeholders";
-import { PLACEHOLDER_WARNING } from "./runner";
 import { SOURCE_LABELS, type SourceRef } from "../types/sources";
 import type { CommandContext } from "../types/commands";
 
@@ -39,7 +38,7 @@ test("getCoachResult composes the default skill payload", async () => {
     assert.ok(firstCapability);
     assert.ok(Array.isArray(firstCapability.sources));
 
-    assert.ok(result.warnings.includes(PLACEHOLDER_WARNING));
+    assert.ok(!result.warnings.some((warning) => warning.includes("placeholder_implementation")));
     assert.equal(uniqueSourceKeys(result.sources).size, result.sources.length);
     assert.doesNotMatch(JSON.stringify(result), /RAW_SOURCE_SECRET|RAW_PROMPT_SECRET|RAW_LOG_BODY_SECRET/);
   } finally {

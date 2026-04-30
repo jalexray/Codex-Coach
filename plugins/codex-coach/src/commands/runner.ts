@@ -16,8 +16,13 @@ interface GlobalOptionValues {
   demo?: boolean;
 }
 
-interface RunOptions {
+interface RunOptions<T> {
   quietWhenNotJson?: boolean;
+  renderText?: (input: {
+    ctx: CommandContext;
+    data: T;
+    result: CommandResult<T>;
+  }) => string;
 }
 
 export function addGlobalOptions(command: Command): Command {
@@ -46,7 +51,7 @@ export async function runCommand<T>(
   commandName: string,
   command: Command,
   runner: (ctx: CommandContext) => Promise<CommandResult<T>> | CommandResult<T>,
-  options: RunOptions = {}
+  options: RunOptions<T> = {}
 ): Promise<void> {
   const ctx = buildContext(commandName, command);
 
@@ -66,7 +71,17 @@ export async function runCommand<T>(
     }
 
     if (!options.quietWhenNotJson) {
-      process.stdout.write(`${commandName}: placeholder contract ready. Re-run with --json for schema output.\n`);
+      const rendered = options.renderText?.({
+        ctx,
+        data: result.data,
+        result
+      });
+
+      if (rendered && rendered.length > 0) {
+        process.stdout.write(rendered.endsWith("\n") ? rendered : `${rendered}\n`);
+      } else {
+        process.stdout.write(`${commandName}: placeholder contract ready. Re-run with --json for schema output.\n`);
+      }
     }
   } catch (error) {
     emitError(ctx, error);

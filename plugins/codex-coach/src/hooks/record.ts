@@ -1,6 +1,7 @@
 import { SOURCE_LABELS } from "../types/sources";
 import type { CommandContext, CommandResult } from "../types/commands";
 import type { RecordHookObservationData } from "../types/command-data";
+import { openStorage } from "../storage";
 import { appendHookObservationRecords } from "./storage";
 import { buildHookObservation } from "./observation";
 
@@ -22,6 +23,18 @@ export async function recordHookObservation(input: {
       warnings: built.warnings,
       sources: []
     };
+  }
+
+  const storage = await openStorage({
+    dataDir: input.ctx.data_dir,
+    generatedAt: input.ctx.generated_at
+  });
+
+  try {
+    storage.upsertHookObservations([built.observation]);
+    storage.upsertCapabilityEvents(built.capabilityEvents);
+  } finally {
+    await storage.close();
   }
 
   const paths = await appendHookObservationRecords({

@@ -6,7 +6,7 @@ const DEFAULT_LOCAL_USER_ID = "local-default";
 export function createDemoFallbackWorkItems(input: { repoPath: string; generatedAt: string }): WorkItem[] {
   return [
     {
-      id: "demo-fallback:settings-layout",
+      id: "demo-settings-layout",
       user_id: DEFAULT_LOCAL_USER_ID,
       source: SOURCE_LABELS.DEMO_FALLBACK,
       title: "Debugged settings page layout across desktop and mobile",
@@ -40,7 +40,7 @@ export function createDemoFallbackWorkItems(input: { repoPath: string; generated
       repo_path: input.repoPath
     },
     {
-      id: "demo-fallback:auth-billing-refactor",
+      id: "demo-auth-billing-refactor",
       user_id: DEFAULT_LOCAL_USER_ID,
       source: SOURCE_LABELS.DEMO_FALLBACK,
       title: "Large refactor across auth and billing",
