@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { placeholderFeedbackData } from "./placeholders";
-import { addGlobalOptions, PLACEHOLDER_WARNING, runCommand } from "./runner";
+import { addGlobalOptions, runCommand } from "./runner";
+import { markRecommendationFeedback, recommendationSources } from "../recommender/service";
 import type { MarkRecommendationFeedbackData } from "../types/command-data";
 
 interface FeedbackOptions {
@@ -20,17 +20,17 @@ export function registerMarkRecommendationFeedbackCommands(program: Command): vo
     .option("--note <note>", "optional feedback note");
 
   command.action(async () => {
-    await runCommand<MarkRecommendationFeedbackData>("mark_recommendation_feedback", command, (ctx) => {
+    await runCommand<MarkRecommendationFeedbackData>("mark_recommendation_feedback", command, async (ctx) => {
       const options = command.opts<FeedbackOptions>();
+      const data = await markRecommendationFeedback(ctx, {
+        recommendationId: options.recommendationId,
+        rating: options.rating,
+        note: options.note
+      });
+
       return {
-        data: placeholderFeedbackData({
-          generated_at: ctx.generated_at,
-          recommendationId: options.recommendationId,
-          rating: options.rating,
-          note: options.note
-        }),
-        warnings: [PLACEHOLDER_WARNING],
-        sources: []
+        data,
+        sources: recommendationSources(ctx)
       };
     });
   });
