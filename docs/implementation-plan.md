@@ -56,6 +56,248 @@ Recommended flow:
 
 If the team cannot land the foundation branch first, each stream can still start in parallel, but the integration lead should expect conflicts in package metadata, command registration, shared types, and README sections.
 
+### Copy/Paste Workstream Prompts
+
+Use one prompt per Codex session after creating each worktree from the updated `main`. Keep the stated file ownership boundaries unless the integration lead explicitly coordinates a cross-stream edit.
+
+#### WS0 Foundation
+
+Use this prompt only if the foundation branch needs to be recreated or repaired.
+
+```text
+You are working in /Users/xray/software/Codex-Coach-foundation on branch codex/ws-foundation.
+
+Implement WS0 from docs/implementation-plan.md: Foundation and Integration Skeleton.
+
+Own only:
+- .gitignore
+- plugins/codex-coach/package.json
+- plugins/codex-coach/tsconfig.json
+- plugins/codex-coach/bin/codex-coach
+- plugins/codex-coach/src/cli.ts
+- plugins/codex-coach/src/commands/index.ts
+- plugins/codex-coach/src/lib/json.ts
+- plugins/codex-coach/src/lib/errors.ts
+- plugins/codex-coach/src/lib/time.ts
+- plugins/codex-coach/src/capabilities/taxonomy.ts
+- plugins/codex-coach/src/types/*.ts
+- placeholder command modules
+
+Create a thin TypeScript CLI skeleton with an executable codex-coach binary, shared JSON envelope helpers, shared source labels, capability taxonomy constants, global option parsing, a command registry, and placeholder implementations for every required command. Keep the branch intentionally thin and do not implement storage, changelog import, hooks, plugin manifest, skill markdown, or README behavior.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm install
+- npm run typecheck
+- ./bin/codex-coach status --json
+- ./bin/codex-coach coach --json
+```
+
+#### WS1 Plugin Install Surface and Skill
+
+```text
+You are working in /Users/xray/software/Codex-Coach-plugin-surface on branch codex/ws-plugin-surface.
+
+Implement WS1 from docs/implementation-plan.md: Plugin Install Surface and Skill.
+
+Own only:
+- plugins/codex-coach/.codex-plugin/plugin.json
+- plugins/codex-coach/skills/coach/SKILL.md
+- .agents/plugins/marketplace.json
+- optional plugins/codex-coach/assets/icon.png
+
+Do not edit CLI source except to inspect command names and output shapes. Follow the spec: manifest paths must be relative ./ paths, the marketplace entry must point to ./plugins/codex-coach, and the skill must call codex-coach coach --json and render only from CLI results. The skill should render the three required sections, explain fallback/source labels, and never infer recommendations outside the structured CLI payload.
+
+Before finishing, verify:
+- Manifest paths are relative to the plugin root and use ./ prefixes.
+- Marketplace entry points at ./plugins/codex-coach.
+- Skill references only stable CLI commands from docs/technical-requirements.md.
+- Skill instructs Codex to render What's new, Capability map, and Recent work review.
+```
+
+#### WS2 CLI Storage and Core Commands
+
+```text
+You are working in /Users/xray/software/Codex-Coach-cli-storage on branch codex/ws-cli-storage.
+
+Implement WS2 from docs/implementation-plan.md: CLI Storage and Core Commands.
+
+Own:
+- plugins/codex-coach/src/storage/**
+- plugins/codex-coach/src/commands/status.ts
+- plugins/codex-coach/src/commands/reset-demo-state.ts
+- plugins/codex-coach/src/commands/delete-local-history.ts
+- shared tests under plugins/codex-coach/src/storage/**/*.test.ts
+
+Use SQLite local persistence. Implement a plugin-owned data directory resolver, schema migrations for all required entities, repository methods, status counts, reset_demo_state skeleton hooks for other streams to seed records, and delete_local_history safety. Preserve the shared JSON envelope contract and do not delete or mutate inspected repos.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach status --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach reset_demo_state --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach delete_local_history --json --data-dir /tmp/codex-coach-test
+```
+
+#### WS3 Changelog Import and What's New
+
+```text
+You are working in /Users/xray/software/Codex-Coach-updates on branch codex/ws-updates.
+
+Implement WS3 from docs/implementation-plan.md: Changelog Import and What's New.
+
+Own:
+- plugins/codex-coach/data/codex-updates.json
+- plugins/codex-coach/src/updates/**
+- plugins/codex-coach/src/commands/import-changelog.ts
+- plugins/codex-coach/src/commands/get-updates.ts
+- plugins/codex-coach/src/commands/mark-updates-seen.ts
+- update-focused tests
+
+Bundle the four required real Codex changelog entries, validate capability_tags against taxonomy.ts, import from bundled JSON offline by default, filter updates by last_seen_updates_at, implement recent_highlights for new users, and mark updates seen. Never invent fake product updates. Optional refresh mode may exist only if it falls back to the bundled cache with warnings.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach import_changelog --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach reset_demo_state --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach get_updates --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach mark_updates_seen --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach get_updates --json --data-dir /tmp/codex-coach-test
+```
+
+#### WS4 Capability Map and Event Aggregation
+
+```text
+You are working in /Users/xray/software/Codex-Coach-capabilities on branch codex/ws-capabilities.
+
+Implement WS4 from docs/implementation-plan.md: Capability Map and Event Aggregation.
+
+Own:
+- plugins/codex-coach/src/capabilities/** except taxonomy.ts unless strictly additive and coordinated
+- plugins/codex-coach/src/commands/get-capability-map.ts
+- capability-map tests
+
+Return every taxonomy capability exactly once, grouped per spec, with status used_recently, tried_before_not_recent, not_observed, or unknown_or_not_connected. Aggregate stored CapabilityEvent records, include source and confidence summaries, label hook-derived data as best-effort, and keep not_observed distinct from unknown_or_not_connected.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach get_capability_map --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach get_capability_map --json --demo --data-dir /tmp/codex-coach-test
+```
+
+#### WS5 Git Recent Work Importer
+
+```text
+You are working in /Users/xray/software/Codex-Coach-git-importer on branch codex/ws-git-importer.
+
+Implement WS5 from docs/implementation-plan.md: Git Recent Work Importer.
+
+Own:
+- plugins/codex-coach/src/importers/git/**
+- plugins/codex-coach/src/work-items/**
+- plugins/codex-coach/src/commands/get-recent-work.ts
+- git importer tests and fixtures
+
+Use git metadata only: commits, branches, filenames, diff stats, timestamps, branch names, and commit messages. Do not read source file contents. Support --repo validation, current repo default, sparse history detection, work item creation with signals, and --demo fallback work items with source: demo-fallback for the required settings-layout and auth/billing-refactor demo items.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach get_recent_work --json --repo . --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach get_recent_work --json --repo . --demo --data-dir /tmp/codex-coach-test
+```
+
+#### WS6 Hook Capture
+
+```text
+You are working in /Users/xray/software/Codex-Coach-hooks on branch codex/ws-hooks.
+
+Implement WS6 from docs/implementation-plan.md: Hook Capture.
+
+Own:
+- plugins/codex-coach/hooks/hooks.json
+- plugins/codex-coach/src/hooks/**
+- plugins/codex-coach/src/commands/record-hook-observation.ts
+- hook fixtures and tests
+
+Provide bundled PostToolUse and Stop hook config. Read hook JSON from stdin, persist only allowed metadata, derive capability events where supported, stay quiet without --json, and never store raw prompts, raw source contents, or full tool responses. Stop handlers must never write plain text to stdout.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- printf '%s\n' '{"session_id":"s1","turn_id":"t1","hook_event_name":"PostToolUse","tool_name":"apply_patch","cwd":"."}' | ./bin/codex-coach record_hook_observation --json --data-dir /tmp/codex-coach-test
+- printf '%s\n' '{"session_id":"s1","turn_id":"t2","hook_event_name":"Stop","cwd":".","stop_hook_active":false}' | ./bin/codex-coach record_hook_observation --json --data-dir /tmp/codex-coach-test
+```
+
+#### WS7 Recommendation Engine and Feedback
+
+```text
+You are working in /Users/xray/software/Codex-Coach-recommender on branch codex/ws-recommender.
+
+Implement WS7 from docs/implementation-plan.md: Recommendation Engine and Feedback.
+
+Own:
+- plugins/codex-coach/src/recommender/**
+- plugins/codex-coach/src/commands/get-recommendations.ts
+- plugins/codex-coach/src/commands/mark-recommendation-feedback.ts
+- recommender tests and fixtures
+
+Implement deterministic rules only, with no OpenAI API call. Map work item signals to capability IDs, return at most two recommendations per work item, suppress recently used capabilities when appropriate, persist recommendations, and persist useful/not-useful feedback. Ensure the settings layout demo item recommends computer-use or multimodal-input and the auth/billing refactor demo item recommends parallel-agents or cloud-task.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach reset_demo_state --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach get_recommendations --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach mark_recommendation_feedback --json --data-dir /tmp/codex-coach-test --recommendation-id <id> --rating useful
+```
+
+#### WS8 Coach Aggregator
+
+Start this after WS3, WS4, WS5, and WS7 have stable service APIs.
+
+```text
+You are working in /Users/xray/software/Codex-Coach-coach-aggregator on branch codex/ws-coach-aggregator.
+
+Implement WS8 from docs/implementation-plan.md: Coach Aggregator.
+
+Own:
+- plugins/codex-coach/src/commands/coach.ts
+- aggregate command tests
+
+Compose updates, capability map, recent work, recommendations, and profile into the default coach payload. Propagate warnings from subcommands, aggregate and deduplicate sources, preserve arrays even when empty, and keep output free of raw source contents, raw prompts, and raw log bodies. Do not duplicate business logic from feature streams.
+
+Before finishing, run:
+- cd plugins/codex-coach
+- npm run typecheck
+- ./bin/codex-coach reset_demo_state --json --data-dir /tmp/codex-coach-test
+- ./bin/codex-coach coach --json --repo . --demo --data-dir /tmp/codex-coach-test
+```
+
+#### WS9 README, Demo Script, and Verification Harness
+
+```text
+You are working in /Users/xray/software/Codex-Coach-docs-demo on branch codex/ws-docs-demo.
+
+Implement WS9 from docs/implementation-plan.md: README, Demo Script, and Verification Harness.
+
+Own:
+- README.md
+- docs/demo-script.md
+- optional plugins/codex-coach/scripts/verify-demo.*
+- optional plugins/codex-coach/test/fixtures/** if coordinated with owners
+
+Write docs that a fresh tester can follow without reading the technical requirements. Cover what Codex Coach does, what data stays local, plugin installation from repo-local marketplace, Codex app invocation, CLI /plugins fallback, hook enablement, hook verification, command reference, --repo behavior, changelog cache behavior, demo fallback labeling, demo reset, local history deletion, and troubleshooting. Do not change CLI behavior unless coordinating with the owning stream.
+
+Before finishing, verify:
+- README covers all required sections in docs/implementation-plan.md.
+- docs/demo-script.md includes the exact required demo moments.
+- Hook docs mention [features] codex_hooks = true where needed.
+- Hook verification uses stored observations, not only SessionStart UI output.
+```
+
 ## 3. Shared Contracts
 
 The foundation branch should define these contracts before broad parallel work starts.
