@@ -1,0 +1,33 @@
+{
+  "name": "codex-coach",
+  "version": "0.1.0",
+  "description": "Local-first coaching readouts for higher-leverage Codex workflows.",
+  "author": {
+    "name": "Codex Coach Team"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "coach",
+    "local-first",
+    "productivity"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Coach",
+    "shortDescription": "Review local Codex updates, capability usage, and recent work recommendations.",
+    "longDescription": "Codex Coach runs a local CLI readout that shows what changed in Codex, maps observed workflow capabilities, and suggests structured next-time recommendations from local metadata.",
+    "developerName": "Codex Coach Team",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Interactive"
+    ],
+    "defaultPrompt": [
+      "Use Codex Coach to show what's new.",
+      "Use Codex Coach to review my recent work.",
+      "Use Codex Coach to reset the demo state."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

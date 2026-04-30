@@ -1,6 +1,6 @@
 import { Command } from "commander";
-import { placeholderCapabilityMapData } from "./placeholders";
-import { addGlobalOptions, PLACEHOLDER_WARNING, runCommand } from "./runner";
+import { getCapabilityMapResult } from "../capabilities";
+import { addGlobalOptions, runCommand } from "./runner";
 import type { CapabilityMapData } from "../types/command-data";
 
 export function registerGetCapabilityMapCommands(program: Command): void {
@@ -9,10 +9,6 @@ export function registerGetCapabilityMapCommands(program: Command): void {
   );
 
   command.action(async () => {
-    await runCommand<CapabilityMapData>("get_capability_map", command, () => ({
-      data: placeholderCapabilityMapData(),
-      warnings: [PLACEHOLDER_WARNING],
-      sources: []
-    }));
+    await runCommand<CapabilityMapData>("get_capability_map", command, getCapabilityMapResult);
   });
 }

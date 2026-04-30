@@ -1,2 +1,2 @@
-export { importChangelog, getUpdates, markUpdatesSeen, resetUpdateDemoState, updateCachePath } from "./service";
+export { importChangelog, getUpdates, markUpdatesSeen, resetUpdateDemoState } from "./service";
 export { loadBundledUpdates } from "./catalog";
