@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "commonjs",
   "bin": {
-    "codex-coach": "./bin/codex-coach"
+    "codex-coach": "./bin/codex-coach",
+    "codex-coach-mcp": "./bin/codex-coach-mcp"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

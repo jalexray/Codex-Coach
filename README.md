@@ -13,6 +13,7 @@ The hackathon demo is designed to show a local install, a Codex thread invocatio
 ## Local Data
 
 Codex Coach stores plugin state locally in a plugin-owned data directory. Use `status --json` to see the exact path for your environment.
+Normal CLI runs default to `~/.local/share/codex-coach`; when Codex runs the plugin inside its sandbox, Codex Coach defaults to `~/.codex/memories/codex-coach` so the plugin can persist state without extra filesystem approval. Set `CODEX_COACH_DATA_DIR` or pass `--data-dir` to override this.
 
 By default, Codex Coach uses metadata only:
 
@@ -95,6 +96,15 @@ The skill should call the local command layer, typically:
 ```sh
 ./plugins/codex-coach/bin/codex-coach coach --json --repo .
 ```
+
+Codex Coach also exposes the same command layer as MCP tools through:
+
+```text
+plugins/codex-coach/.mcp.json
+plugins/codex-coach/bin/codex-coach-mcp
+```
+
+After reinstalling or reloading the plugin, Codex can call tools such as `coach`, `get_updates`, `get_recent_work`, and `mark_recommendation_feedback` instead of relying only on skill instructions.
 
 For a deterministic demo, include `--demo` after running `reset_demo_state`:
 

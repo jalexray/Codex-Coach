@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "codex-coach": {
+      "command": "./bin/codex-coach-mcp",
+      "args": [],
+      "cwd": "."
+    }
+  }
+}

@@ -13,6 +13,7 @@
     "productivity"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Codex Coach",
     "shortDescription": "Review local Codex updates, capability usage, and recent work recommendations.",

@@ -5,15 +5,25 @@ import { CoachError } from "../lib/errors";
 
 export const PLUGIN_DATA_DIR_NAME = "codex-coach";
 export const DATABASE_FILENAME = "codex-coach.sqlite";
+export const CODEX_COACH_DATA_DIR_ENV = "CODEX_COACH_DATA_DIR";
 
 export function resolvePluginDataDir(dataDir?: string): string {
   if (dataDir && dataDir.length > 0) {
     return path.resolve(dataDir);
   }
 
+  const envDataDir = process.env[CODEX_COACH_DATA_DIR_ENV];
+  if (envDataDir && envDataDir.length > 0) {
+    return path.resolve(envDataDir);
+  }
+
   const xdgDataHome = process.env.XDG_DATA_HOME;
   if (xdgDataHome && xdgDataHome.length > 0) {
     return path.resolve(xdgDataHome, PLUGIN_DATA_DIR_NAME);
+  }
+
+  if (isCodexSandbox()) {
+    return path.join(resolveCodexHome(), "memories", PLUGIN_DATA_DIR_NAME);
   }
 
   return path.join(os.homedir(), ".local", "share", PLUGIN_DATA_DIR_NAME);
@@ -96,4 +106,13 @@ export async function deletePluginStorageFiles(dataDir: string): Promise<string[
 
 function isNotFoundError(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+function isCodexSandbox(): boolean {
+  return typeof process.env.CODEX_SANDBOX === "string" && process.env.CODEX_SANDBOX.length > 0;
+}
+
+function resolveCodexHome(): string {
+  const codexHome = process.env.CODEX_HOME;
+  return codexHome && codexHome.length > 0 ? path.resolve(codexHome) : path.join(os.homedir(), ".codex");
 }

@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+set -e
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+
+if [ ! -f "$ROOT_DIR/dist/mcp/server.js" ]; then
+  (cd "$ROOT_DIR" && npm run build --silent)
+fi
+
+exec node "$ROOT_DIR/dist/mcp/server.js" "$@"
