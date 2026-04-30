@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Coach logo icon</title>
+  <desc id="desc">Original rounded code-cloud badge with a terminal prompt and coaching guidance accent.</desc>
+  <defs>
+    <linearGradient id="coachAccent" x1="145" x2="405" y1="363" y2="127" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <filter id="softLift" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#0f1111" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <path
+    fill="#faf7ef"
+    stroke="#101213"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="28"
+    filter="url(#softLift)"
+    d="M253 48c39 0 73 16 98 42 18-7 38-9 59-4 53 13 87 63 78 118 27 31 37 73 28 114-12 55-55 96-110 105-21 35-61 58-107 55-31-2-59-15-80-36-39 8-80-3-109-30-31-29-45-70-38-111-27-32-34-77-16-117 18-41 55-67 96-74 19-38 57-62 101-62Z"/>
+  <path
+    fill="none"
+    stroke="url(#coachAccent)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="24"
+    d="M354 143c32 16 54 48 56 86M386 360c-20 34-57 54-100 50"/>
+  <path
+    fill="none"
+    stroke="#101213"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="40"
+    d="m186 182 68 75-68 75"/>
+  <path
+    fill="none"
+    stroke="#101213"
+    stroke-linecap="round"
+    stroke-width="40"
+    d="M304 321h82"/>
+  <path
+    fill="none"
+    stroke="#10b981"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="22"
+    d="m314 188 31 31 62-69"/>
+  <circle cx="407" cy="150" r="12" fill="#7dd3fc"/>
+</svg>
